@@ -1,0 +1,13 @@
+{
+    "version": "number",
+    "rootHash": "string<hex>",
+    "airdrops": [
+        {
+            "index": "number",
+            "address": "string<ethereumAddress>",
+            "balance": "number",
+            "merkleProof": "Array<string>",
+            "claimed": "bool"
+        }
+    ]
+}

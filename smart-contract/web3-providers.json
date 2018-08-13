@@ -1,0 +1,6 @@
+{
+    "mainnet": "https://mainnet.infura.io/zCPaFWlkAWiqVP0btZR1",
+    "rinkeby": "https://rinkeby.infura.io/zCPaFWlkAWiqVP0btZR1",
+    "kovan": "https://kovan.infura.io/zCPaFWlkAWiqVP0btZR1",
+    "ropsten": "https://ropsten.infura.io/zCPaFWlkAWiqVP0btZR1"
+}
