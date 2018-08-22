@@ -3,6 +3,7 @@ const ERC20Token = require('./smart-contract/api/erc20-token-api');
 const WalletUtils = require('./smart-contract/wallet-utils');
 const Airdropper = require('./airdropper');
 const Config = require('./config.json');
+const CreateAirdrop = require('./airdrop/create_aridrop_data');
 
 const msAdmin = Config.adminMnemonics;
 const msClaimer = Config.claimerMnemonics;
@@ -14,8 +15,19 @@ const Claimer = WalletUtils.getAddressAndPrivateKeyFromMnemonic(msClaimer);
 const MUI_TOKEN_CONTRACT_ADDRESS = Config.MUI_TOKEN_CONTRACT_ADDRESS;
 
 
+const IS_FIREBASE = true;
 function main() {
+    if(IS_FIREBASE) {
+        CreateAirdrop.init();
+    } else {
+        createLocalDB();
+    }
+}
+
+function createLocalDB() {
     let db = createAirdropBalanceDB(accounts, 100);
+
+
     let airdropper = new Airdropper(db);
     let MuiToken = new ERC20Token(MUI_TOKEN_CONTRACT_ADDRESS, null, 6);
 
@@ -29,7 +41,7 @@ function main() {
     MuiToken.balanceOf(AirdropApi.getContractAddress())
         .then(balance => console.log(`Airdrop-Contract balance: ${balance.toString()} MUI`))
         .catch(e => console.log('balanceOf error:', e));
-    
+
     // MuiToken.transfer(Admin, AirdropApi.getContractAddress(), 50000)
     //     .then(balance => console.log('Admin balance:', balance.toString()))
     //     .catch(e => console.log('transfer error:', e));
@@ -57,7 +69,7 @@ function main() {
     // AirdropApi.pause(Admin)
     //     .then(tx => console.log('Pause tx:', tx))
     //     .catch(e => console.log('Pause error:', e));
-    
+
     // AirdropApi.setIncentives(Admin, airdropper.getRootHash())
     //     .then(tx => console.log('SetIncentives tx:', tx))
     //     .catch(e => console.log('SetIncentives error:', e));
