@@ -23,15 +23,18 @@ AirDropper.prototype.getRootHash = function() {
 }
 
 AirDropper.prototype.getIndex = function(address) {
+    console.log('address - param: ', address);
     address = address.toLowerCase();
+    console.log('address - toLowerCase: ', address);
 
     let leaves = expandLeaves(this.balances);
+    console.log('leaves: ', leaves);
 
     for (let i = 0; i < leaves.length; i++) {
         if (i != leaves[i].index) { 
             throw new Error('Fatal: Index data and index of the address in the data array do not match!'); 
         }
-        if (leaves[i].address === address) { 
+        if (leaves[i].address === address) {
             return leaves[i].index; 
         }
     }
@@ -87,7 +90,7 @@ AirDropper.prototype.verifyMerkleProof = function(index, address, amount, merkle
 function expandLeaves(balances) {
     let addresses = Object.keys(balances);
 
-    return addresses.map(function(addr, i) { return { index: i, address: addr, balance: balances[addr] }; });
+    return addresses.map(function(addr, i) { return { index: i, address: addr.toLowerCase(), balance: balances[addr] }; });
 }
 
 /**

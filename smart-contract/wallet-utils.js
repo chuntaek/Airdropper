@@ -17,10 +17,34 @@ function getAddressAndPrivateKeyFromMnemonic(mnemonic, index = 0) {
     let privateKey = wallet.getPrivateKey();
 
     console.log('Address:', wallet.getAddressString());
-    console.log('Private key:', wallet.getPrivateKeyString());
+    console.log('Private key:'+privateKey.length, privateKey, realtypeof(privateKey));
 
     return { address, privateKey };
 }
+
+var realtypeof = function (obj) {
+    switch (typeof(obj)) {
+        // object prototypes
+        case 'object':
+            if (obj instanceof Array)
+                return '[object Array]';
+            else if (obj instanceof Date)
+                return '[object Date]';
+            else if (obj instanceof RegExp)
+                return '[object regexp]';
+            else if (obj instanceof String)
+                return '[object String]';
+            else if (obj instanceof Number)
+                return '[object Number]';
+            else if (obj instanceof Uint8Array)
+                return '[object Uint8Array]';
+            else
+                return 'object';
+        // object literals
+        default:
+            return typeof(obj);
+    }   
+};
 
 
 module.exports = {

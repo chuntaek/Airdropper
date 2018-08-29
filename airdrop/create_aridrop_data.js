@@ -17,49 +17,68 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-function init() {
+function init(Admin) {
     hasAirdropData()
-        .then(hasAirdropData => {
+        .then(async hasAirdropData => {
             if(!hasAirdropData) {
                 /*
                     collection('airdrop').doc(version).collection('airdrops').doc(address).set({
                         "index": index,
                         "balance": balance,
                         "merkleProof": '',
-                        "cliamed": false,
-                        "address": walletAddress
+                        "cliamed": false
                     }
                 */
-                setAirdropSubRecord()
-                    .then(balances => {
-                        console.log('balances', '=>', balances);
 
-                        airdropApi.getVersion()
-                            .then(version => {
-                                const airDropper = new Airdropper(balances);
-                                const data = {
-                                    "version": version,
-                                    "rootHash": airDropper.getRootHash()
-                                };
-                                console.log('data: ', data);
-                                /*
-                                    collection('airdrop').doc(version).set({
-                                        "version": version,
-                                        "rootHash": rootHash,
-                                    }
-                                 */
-                                FirestoreDB.setRecord(FirestoreDB.createDocRef('airdrop', version), data, true);
+                const balances = await setAirdropSubRecord();
+                console.log('balances', '=>', balances);
 
-                                return airDropper;
-                            })
-                            .then(airDropper => {
-                                updateMerkleProof(airDropper)
-                                    .then(() => console.log('Updated MerkleProof!!'))
-                                    .catch(err => console.log(err));
-                            })
-                            .catch(err => console.log(err));
-                    })
-                    .catch(err => console.log(err));
+                const airDropper = new Airdropper(balances);
+                const version = await getVersion();
+                const data = {
+                    "version": version,
+                    "rootHash": airDropper.getRootHash()
+                };
+                console.log('Main data: ', data);
+
+                await FirestoreDB.setRecord(FirestoreDB.createDocRef('airdrop', version), data, true);
+                await updateMerkleProof(airDropper);
+                console.log('Updated MerkleProof!!');
+
+                // setAirdropSubRecord()
+                //     .then(balances => {
+                //         console.log('balances', '=>', balances);
+                //
+                //         airdropApi.getVersion()
+                //             .then(version => {
+                //                 const airDropper = new Airdropper(balances);
+                //                 const data = {
+                //                     "version": version,
+                //                     "rootHash": airDropper.getRootHash()
+                //                 };
+                //                 console.log('data: ', data);
+                //
+                //                 /*
+                //                     collection('airdrop').doc(version).set({
+                //                         "version": version,
+                //                         "rootHash": rootHash,
+                //                     }
+                //                  */
+                //                 FirestoreDB.setRecord(FirestoreDB.createDocRef('airdrop', version), data, true)
+                //                     .catch(err => console.log(err));
+                //
+                //                 return airDropper;
+                //             })
+                //             .then(airDropper => {
+                //                 updateMerkleProof(airDropper)
+                //                     .then(() => console.log('Updated MerkleProof!!'))
+                //                     .catch(err => console.log(err));
+                //
+                //                 return airDropper;
+                //             })
+                //             .catch(err => console.log(err));
+                //     })
+                //     .catch(err => console.log(err));
             } else {
                 console.log('Do create a airdrop data!!');
             }
@@ -123,33 +142,30 @@ function setAirdropSubRecord() {
 
 
                     let balance = 20;    // KYC reward
-                    const data = {
-                        "index": index,
-                        "balance": balance,  // KYC reward
-                        "merkleProof": '',
-                        "cliamed": false,
-                        "address": walletAddress,
-                        "uid": uid
-                    };
                     getReferralReward(uid)
                         .then(reward => {
                             console.log('referralReward: ', reward);
-                            return balance += reward;
+                            balance += reward;
                         })
-                        .then(balance => {
-                            data.balance = balance;
-                        })
-                        .catch(e => reject(e));
-                    console.log('data: ', data);
+                        .then(() => {
+                            const data = {
+                                "index": index,
+                                "balance": balance,  // KYC reward
+                                "merkleProof": '',
+                                "claimed": false
+                            };
+                            console.log('data: ', data);
 
-                    /*
-                        Set a airdrop sub collection
-                     */
-                    getVersion()
-                        .then(version => {
-                            db.collection('airdrop').doc(version)
-                                .collection('airdrops').doc(data.address)
-                                .set(data)
+                            /*
+                                Set a airdrop sub collection
+                             */
+                            getVersion()
+                                .then(version => {
+                                    db.collection('airdrop').doc(version)
+                                        .collection('airdrops').doc(walletAddress)
+                                        .set(data)
+                                        .catch(e => reject(e));
+                                })
                                 .catch(e => reject(e));
                         })
                         .catch(e => reject(e));
@@ -157,13 +173,9 @@ function setAirdropSubRecord() {
                     /*
                         Set a {address: balance} pair
                      */
-                    let addresses = [];
-                    addresses[index] = walletAddress;
-
-                    balances[addresses] = balance;
+                    balances[walletAddress] = balance;
                     index++;
                 });
-                // console.log('balances: ', balances);
 
                 resolve(balances);
             })
@@ -213,22 +225,24 @@ function updateMerkleProof(airDropper) {
     return new Promise((resolve, reject) => {
         getAirdropRef()
             .then(airdropRef => {
-                // if(!airdropRef.exists) {
                 if(airdropRef === 'undefined' || airdropRef == null) {
                     reject('No record has been found in the provided document reference! - updateMerkleProof#1');
                 }
 
                 airdropRef.collection('airdrops').get()
                     .then(airdropSubRef => {
-                        // if(!airdropSubRef.exists) {
                         if(airdropSubRef === 'undefined' || airdropSubRef == null) {
                             reject('No record has been found in the provided document reference! - updateMerkleProof#2');
                         }
 
+                        console.log("doc size: ", airdropSubRef.size);
                         airdropSubRef.forEach(doc => {
                             const address = doc.id;
-                            const {index} = doc.data();
+                            // const {index} = doc.data();
+                            const index = airDropper.getIndex(address);
                             const merkleProof = airDropper.getMerkleProof(index);
+                            console.log(index, 'merkelProof: ', merkleProof);
+
                             if(address === 'undefined' || address == null
                                 || index === 'undefined' || index == null
                                 || merkleProof === 'undefined' || merkleProof == null) {

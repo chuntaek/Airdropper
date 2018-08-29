@@ -18,13 +18,16 @@ const MUI_TOKEN_CONTRACT_ADDRESS = Config.MUI_TOKEN_CONTRACT_ADDRESS;
 const IS_FIREBASE = true;
 function main() {
     if(IS_FIREBASE) {
-        CreateAirdrop.init();
+        CreateAirdrop.init(Admin);  
     } else {
         createLocalDB();
     }
 }
 
 function createLocalDB() {
+    console.log("Admin: ", Admin, msAdmin);
+    console.log("Claimer: ", Claimer, msClaimer);
+
     let db = createAirdropBalanceDB(accounts, 100);
 
 
@@ -47,7 +50,37 @@ function createLocalDB() {
     //     .catch(e => console.log('transfer error:', e));
 
     AirdropApi.isPaused()
-        .then(paused => console.log('IsPaused:', paused))
+        .then(paused => {
+            console.log('IsPaused:', paused);
+
+            if(paused) {
+                AirdropApi.setIncentives(Admin, '0x9954d5f22e57edfa0fa39ac2e820575c3d02309210234830795c026ac9a8c91f')
+                    .then(tx => {
+                        console.log('SetIncentives tx:', tx);
+
+                        AirdropApi.unpause(Admin)
+                            .then(tx => console.log('Pause tx:', tx))
+                            .catch(e => console.log('Pause error:', e));
+                    })
+                    .catch(e => console.log('SetIncentives error:', e));
+            } else {
+                AirdropApi.pause(Admin)
+                    .then(tx => {
+                        console.log('Pause tx:', tx);
+
+                        // AirdropApi.setIncentives(Admin, '0x9391a6d68484b1bdb5bdb503ecf61ed0bb42cd764b782e9de1fa9ba2efaf6c95')
+                        //     .then(tx => {
+                        //         console.log('SetIncentives tx:', tx);
+                        //
+                        //         AirdropApi.unpause(Admin)
+                        //             .then(tx => console.log('Pause tx:', tx))
+                        //             .catch(e => console.log('Pause error:', e));
+                        //     })
+                        //     .catch(e => console.log('SetIncentives error:', e));
+                    })
+                    .catch(e => console.log('Pause error:', e));
+            }
+        })
         .catch(e => console.log('IsPaused error:', e));
 
     AirdropApi.getVersion()
@@ -66,13 +99,21 @@ function createLocalDB() {
     //     .then(tx => console.log('Claim:', tx))
     //     .catch(e => console.log('Claim error:', e));
 
-    // AirdropApi.pause(Admin)
-    //     .then(tx => console.log('Pause tx:', tx))
-    //     .catch(e => console.log('Pause error:', e));
+
+
+    // AirdropApi.isPaused()
+    //     .then(paused => console.log('IsPaused:', paused))
+    //     .catch(e => console.log('IsPaused error:', e));
 
     // AirdropApi.setIncentives(Admin, airdropper.getRootHash())
     //     .then(tx => console.log('SetIncentives tx:', tx))
     //     .catch(e => console.log('SetIncentives error:', e));
+
+    // AirdropApi.unpause(Admin)
+    //      .then(tx => console.log('Pause tx:', tx))
+    //      .catch(e => console.log('Pause error:', e));
+
+
 }
 
 

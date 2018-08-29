@@ -2,7 +2,8 @@ const HttpProviders = require('./web3-providers.json');
 const Web3 = require('web3');
 
 // TODO: Make configurable (STAGING/PRODUCTION)
-const httpProvider = HttpProviders.ropsten;
+// const httpProvider = HttpProviders.ropsten;
+const httpProvider = HttpProviders.rinkeby;
 
 const web3Instance = new Web3();
 web3Instance.setProvider(new web3Instance.providers.HttpProvider(httpProvider));

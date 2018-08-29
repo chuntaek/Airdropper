@@ -8,7 +8,7 @@ const web3 = require('./web3-utils').web3;
 const DEFAULT_GAS_LIMIT = 200000;
 const DEFAULT_GAS_PRICE = 21e9;
 // TODO: Make network id configurable (testnet/mainnet)
-const NETWORK_ID = 3;
+const NETWORK_ID = 4;
 const TX_TRIAL_INTERVAL = 10000;
 
 
